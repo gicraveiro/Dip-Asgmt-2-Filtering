@@ -57,8 +57,39 @@ def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
     return result_img
 
 def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplacian Filter
-    #function goes here
-    aux = 1 #delete later
+    
+    k = np.zeros((3,3),dtype=np.float)
+
+    if kernel == 1:
+        k = [[0,-1,0],[-1,4,-1],[0,-1,0]] # creates kernel 1
+    elif kernel == 2:
+        k = [[-1,-1,-1],[-1,8,-1],[-1,-1,-1]] #creates kernel 2
+
+    height, width = img.shape
+    neighborhood = np.zeros((3,3),dtype=np.float) #creates submatrix to store the current neighborhood of the point being calculated
+    result_img = np.zeros(img.shape,dtype=np.uint8) #creates a new empty image with size nxn to store the final image
+
+    #Convolution with chosen kernel
+    for i in range(1,height-1):
+        for j in range(1,width-1):
+
+            neighborhood = img[(i-1):(i+2),(j-1):(j+2)]
+            img_pixel = float(0)
+
+            for x in range(3):
+                for y in range(3):
+                    neigh_pix = float(k[x,y])*float(neighborhood[x,y])
+                    img_pixel = img_pixel + neigh_pix
+                    
+            result_img[i,j] = img_pixel
+    
+    result_img = (result_img - np.min(result_img))*255/np.max(result_img) # scale the filtered image using normalization (0 - 255)
+
+    result_img = c*result_img + img # adds the filtered image, multiplied by c, back to the original image
+
+    result_img = (result_img - np.min(result_img))*255/np.max(result_img) # scale the fial image using normalization (0-255)
+
+    return result_img
 
 def Vignette_Filter_3(img,sigmaRow,sigmaCol): # Method 3 - Vignette Filter
     #function goes here
@@ -67,8 +98,6 @@ def Vignette_Filter_3(img,sigmaRow,sigmaCol): # Method 3 - Vignette Filter
 imagename = str(input()).rstrip() # reads the name of the reference image file
 
 image = imageio.imread(imagename) # reads the image
-
-
 
 M = int(input()) # paramater to indicate the method 1,2, our 3
 
@@ -93,6 +122,8 @@ if M == 2: # Unsharp Mask using the Laplacian Filter
     c = float(input())
 
     kernel = int(input())
+
+    image = np.pad(image,(1,1),mode='constant',constant_values=(0)) #adds image padding
     
     result_img = Laplacian_Filter_2(image,c,kernel)
 
@@ -107,7 +138,6 @@ if M == 3: # Vignette Filter
 
 # 3 - Compare the new image with the reference image using the following formula: RSE = sqrt(∑i∑j (f(i,j) - r(i,j))²), in which f is the modified image and r is the reference image
 
-#rse = np.sqrt( np.sum ( np.square( np.subtract(result_img.astype(np.int32),image.astype(np.int32)) ) ))
 rse = (np.sqrt( np.sum ( np.square (np.subtract(result_img.astype(np.int32),image.astype(np.int32)) ) ) ) )
 
 # 4 - Print in the screen the root squared error between the images, which I named rse
