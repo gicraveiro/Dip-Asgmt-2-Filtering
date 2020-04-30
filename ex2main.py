@@ -9,46 +9,50 @@ import imageio
 import matplotlib.pyplot as plt
 
 def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
-    #function goes here
+    
+    gr_f = np.zeros((n,n),dtype=np.float) # creates matrix to store range Gaussian
+    gs_f = np.zeros((n,n),dtype=np.float) # creates matrix to store spatial Gaussian component
 
-    w = np.zeros((n,n),dtype=np.float)#.astype(np.int32) #creates matrix of size nxn
-    #n,n = filter.shape
+    a = int((n-1)/2) # (a,a) is the value of the center of the filter, a can be used to adequately walk through the neighborhood of each pixel, with its center placed at the origin, according to n given
 
-    a = int((n-1)/2) # a = b since the filter has size nxn
-    #create filter
+    # CREATING FILTER
 
-    for x in range(-a,a+1): #assuming the filter in the center to use correct values for x and y
+    #Gaussian Spatial Component
+    for x in range(-a,a+1): # values of x and y of each position of an n-sized matrix are needed to calculate euclidean distance from each position to the center
         for y in range(-a,a+1):
-            euc = float(np.sqrt(np.square(x) + np.square(y)) )#apply the euclidean distance between the position and the center to find the x value
-            gauss_point = float( np.exp( -np.square(euc) / ( 2*np.square(sigmaS) ) ) / (2*np.pi*np.square(sigmaS))) #apply the Gaussian Kernel equation G(x,y) for each pixel
-            w[x,y] = gauss_point#.astype(np.int32)
-            print(w[x,y])
+            euc = np.sqrt((np.square(x) + np.square(y))) #applies the euclidean distance between the position and the center to find the x value to use in Gaussian kernel equation
+            gs_i = 1 / (2*np.pi*np.square(sigmaS)) #applies the Gaussian kernel equation G(euc,sigmaS) for each pixel of the gaussian spatial component
+            gs_i = gs_i * (np.exp( -np.square(euc) / ( 2*np.square(sigmaS) ) ) )
+            gs_f[x,y] = gs_i
 
-    print("Let's see how the filter is being created...\n")
-    print(w) #expect filter to be created correctly
+    height, width = img.shape # gets height and width of the original image
+    subimg = np.zeros((n,n),dtype=np.float) #creates submatrix to store the current neighborhood of the point being calculated
+    result_img = np.zeros(img.shape,dtype=np.uint8) #creates a new empty image with size nxn to store the final image
 
-   # return img;
+    #Convolution
+    for i in range (a,height-a): # walks through the final image
+        for j in range(a,width-a):
 
-    #get submatrix of pixel neighborhood to apply filter on the pixel
-    #filter = np.matrix()
-    subimg = np.zeros((n,n),dtype=np.float)
-    subimg = img[(x-a):(x+a+1), (y-a):(y+a+1)]
-    print(subimg)
-    print(img)
-    #flips the filter
-    #subimg = np.flip (np.flip(subimg,0), 1)
-    print(subimg)
+            I_f = float(0) # value for the pixel to be calculated is initiated at 0
+            W_p = float(0) # normalization factor for the pixel is initiated at 0
 
-    result_img = np.empty(w.shape,dtype=np.uint8) #creates a new empty image with size nxn
-    print(result_img)
+            subimg = img[(i-a):(i+a+1), (j-a):(j+a+1)] #gets current submatrix of pixel neighborhood in order to apply filter on it
 
-    #loops through each pixel of the image calculating the new value, through the convolution point
-    for x in range(n):
-        for y in range(n):
-            conv_point = np.sum(np.multiply(subimg, w)) # sum of each of the neighborhood pixel multiplied by the filter is the convolution point
-            result_img[x,y] = conv_point#.astype(np.uint8) 
+            for x in range(n): # walks through neighborhood matrix of the current point
+                for y in range(n):
+                    #Range Gaussian Component
+                    dif = float(subimg[x,y]) - float(subimg[a,a])# calculates distance between the current position and the center of the neighborhood matrix, in order to find the x value to use in Gaussian kernel equation
+                    gr_i = 1 / (2*np.pi*np.square(sigmaR)) # applies the Gaussian Kernel equation G(dif,sigmaR) for each pixel of the range gaussian component
+                    gr_i = gr_i * (np.exp( -np.square(dif) / ( 2*np.square(sigmaR) ) ) )
+                    gr_f[x,y] = gr_i
 
-    print(result_img)
+                    w_i = float(gs_f[x,y])*float(gr_f[x,y]) # calculates the value of the filter for each pixel in the neighborhood by multiplying tha range Gaussian and the spatial Gaussian components
+
+                    W_p = W_p + float(w_i) # calculates normalization factor 
+
+                    I_f = I_f + float(w_i*subimg[x,y]) # applies the filter to each point of the neighborhood, by multiplying the filter local value and the neighborhood pixel and summing them all
+     
+            result_img[i,j] = I_f/W_p # fills up position [x,y] of the final image with the correct number    
     
     return result_img
 
@@ -64,6 +68,8 @@ imagename = str(input()).rstrip() # reads the name of the reference image file
 
 image = imageio.imread(imagename) # reads the image
 
+
+
 M = int(input()) # paramater to indicate the method 1,2, our 3
 
 S = int(input()) # parameter to know if the image should be saved, 1 for yes
@@ -77,8 +83,9 @@ if M == 1: # Bilateral Filter
 
     sigmaR = float(input())
 
-    image = np.pad(image,(1,1),mode='constant',constant_values=(0))
-    print(image)
+    a = int((n-1)/2) # calculates size of the padding required
+    image = np.pad(image,(a,a),mode='constant',constant_values=(0)) #adds image padding
+
     result_img = Bilateral_Filter_1(image,n,sigmaS,sigmaR)
 
 if M == 2: # Unsharp Mask using the Laplacian Filter
