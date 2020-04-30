@@ -6,7 +6,7 @@
 
 import numpy as np
 import imageio
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
     
@@ -21,9 +21,9 @@ def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
     for x in range(-a,a+1): # values of x and y of each position of an n-sized matrix are needed to calculate euclidean distance from each position to the center
         for y in range(-a,a+1):
             euc = np.sqrt((np.square(x) + np.square(y))) #applies the euclidean distance between the position and the center to find the x value to use in Gaussian kernel equation
-            gs_i = 1 / (2*np.pi*np.square(sigmaS)) #applies the Gaussian kernel equation G(euc,sigmaS) for each pixel of the gaussian spatial component
-            gs_i = gs_i * (np.exp( -np.square(euc) / ( 2*np.square(sigmaS) ) ) )
-            gs_f[x,y] = gs_i
+            gs_i = float(1) / (2*np.pi*np.square(sigmaS)) #applies the Gaussian kernel equation G(euc,sigmaS) for each pixel of the gaussian spatial component
+            gs_i = gs_i * (np.exp( float(-np.square(euc)) / float(( 2*np.square(sigmaS)) ) ) )
+            gs_f[x,y] = float(gs_i)
 
     height, width = img.shape # gets height and width of the original image
     subimg = np.zeros((n,n),dtype=np.float) #creates submatrix to store the current neighborhood of the point being calculated
@@ -44,7 +44,7 @@ def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
                     dif = float(subimg[x,y]) - float(subimg[a,a])# calculates distance between the current position and the center of the neighborhood matrix, in order to find the x value to use in Gaussian kernel equation
                     gr_i = 1 / (2*np.pi*np.square(sigmaR)) # applies the Gaussian Kernel equation G(dif,sigmaR) for each pixel of the range gaussian component
                     gr_i = gr_i * (np.exp( -np.square(dif) / ( 2*np.square(sigmaR) ) ) )
-                    gr_f[x,y] = gr_i
+                    gr_f[x,y] = float(gr_i)
 
                     w_i = float(gs_f[x,y])*float(gr_f[x,y]) # calculates the value of the filter for each pixel in the neighborhood by multiplying tha range Gaussian and the spatial Gaussian components
 
@@ -52,7 +52,7 @@ def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
 
                     I_f = I_f + float(w_i*subimg[x,y]) # applies the filter to each point of the neighborhood, by multiplying the filter local value and the neighborhood pixel and summing them all
      
-            result_img[i,j] = I_f/W_p # fills up position [x,y] of the final image with the correct number    
+            result_img[i,j] = int(I_f/W_p) # fills up position [x,y] of the final image with the correct number    
     
     return result_img
 
@@ -119,13 +119,3 @@ print("%.4f" % rse)
 if S == 1:
     imageio.imwrite("FilteredImage.jpg",result_img)
 
-# showing images
-plt.figure(figsize=(12,12)) 
-plt.subplot(121)
-plt.imshow(image, cmap="gray", vmin=0, vmax=255)
-plt.title("original, noisy")
-plt.axis('off')
-plt.subplot(122)
-plt.imshow(result_img, cmap="gray", vmin=0, vmax=255)
-plt.title("filtered image")
-plt.axis('off')
