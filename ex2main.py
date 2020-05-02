@@ -63,37 +63,33 @@ def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
 
 def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplacian Filter
     
-#    k = np.zeros((3,3),dtype=np.float)
-    img = img.astype(np.int32)
+    k = np.zeros((3,3),dtype=np.float)
+    img = img.astype(np.float) # int32 e float dá no mesmo
 
     if kernel == 1:
         k = np.matrix([[0,-1,0],[-1,4,-1],[0,-1,0]]) # creates kernel 1
     elif kernel == 2:
         k = np.matrix([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]) #creates kernel 2
     
-    k = k.astype(np.int32)
-    #print(k)
+    #k = k.astype(np.int32) # com ou sem nao fez diferença
 
     height, width = img.shape
     neighborhood = np.zeros((3,3),dtype=np.float) #creates submatrix to store the current neighborhood of the point being calculated
     result_img = np.zeros(img.shape,dtype=np.float) #creates a new empty image with size nxn to store the final image
-    neigh_pix = float(0)
+    neigh_pix = 0
 
     #Convolution with chosen kernel
     for i in range(1,height-1):
         for j in range(1,width-1):
 
             neighborhood = img[(i-1):(i+2),(j-1):(j+2)]
-            neighborhood = neighborhood.astype(np.int32) #já estava em float e nao fez diferença no resultado
-            img_pixel = float(0)
-            #print (neighborhood)
-            #print (img[i,j])
-
+            neighborhood = neighborhood#.astype(np.int32) #já estava em float e nao fez diferença no resultado
+            img_pixel = 0
 
             for x in range(3):
                 for y in range(3):
-                    neigh_pix = float(k[x,y]) * float(neighborhood[x,y])
-                    img_pixel = img_pixel + neigh_pix
+                    #neigh_pix = k[x,y] * neighborhood[x,y]
+                    img_pixel = img_pixel + (k[x,y] * neighborhood[x,y]) #+ neigh_pix
                     
             result_img[i,j] = img_pixel
     
@@ -108,23 +104,16 @@ def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplac
     for i in range(height-2):
     	for j in range(width-2):
             result_img[i,j] = ((result_img[i,j] - imin)*255) / imax # scale the filtered image using normalization (0 - 255)
-   # print(np.min(result_img))
-   # print(np.max(result_img))
-
-    for i in range(height-2):
-        for j in range(width-2):
             result_img[i,j] = (c*result_img[i,j] ) + img[i,j] # adds the filtered image, multiplied by c, back to the original image
-
+            
     imin = np.min(result_img)
     imax = np.max(result_img)
 
     for i in range(height-2):
     	for j in range(width-2):
-            result_img[i,j] = ((result_img[i,j] - imin)*255)/ imax # scale the final image using normalization (0-255)
+            result_img[i,j] = ((result_img[i,j] - imin)*255)/ imax # scale the final image using normalization (0-255)    
 
-        
-
-    return result_img.astype(np.uint8)
+    return result_img
 
 def Vignette_Filter_3(img,sigmaRow,sigmaCol): # Method 3 - Vignette Filter
    
@@ -216,7 +205,7 @@ if M == 2: # Unsharp Mask using the Laplacian Filter
 
     image = np.pad(image,(1,1),mode='constant',constant_values=(0)) #adds image padding
     
-    result_img = Laplacian_Filter_2(image,c,kernel)
+    result_img = Laplacian_Filter_2(image,c,kernel) #gets image with filter applied
 
     image = np.delete(image,0,0) #removes image padding from original image
     image = np.delete(image,0,1)
