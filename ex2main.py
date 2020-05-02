@@ -58,18 +58,20 @@ def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
 
 def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplacian Filter
     
-    k = np.zeros((3,3),dtype=np.float)
+#    k = np.zeros((3,3),dtype=np.float)
+    img = img.astype(np.int32)
 
     if kernel == 1:
         k = np.matrix([[0,-1,0],[-1,4,-1],[0,-1,0]]) # creates kernel 1
     elif kernel == 2:
         k = np.matrix([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]) #creates kernel 2
-
+    
+    k = k.astype(np.int32)
     #print(k)
 
     height, width = img.shape
     neighborhood = np.zeros((3,3),dtype=np.float) #creates submatrix to store the current neighborhood of the point being calculated
-    result_img = np.zeros(img.shape,dtype=np.uint8) #creates a new empty image with size nxn to store the final image
+    result_img = np.zeros(img.shape,dtype=np.float) #creates a new empty image with size nxn to store the final image
     neigh_pix = float(0)
 
     #Convolution with chosen kernel
@@ -77,6 +79,7 @@ def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplac
         for j in range(1,width-1):
 
             neighborhood = img[(i-1):(i+2),(j-1):(j+2)]
+            neighborhood = neighborhood.astype(np.int32) #já estava em float e nao fez diferença no resultado
             img_pixel = float(0)
             #print (neighborhood)
             #print (img[i,j])
@@ -89,22 +92,30 @@ def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplac
                     
             result_img[i,j] = img_pixel
     
-    np.delete(result_img,0,0)# remove paddings
-    np.delete(result_img,0,1)
-    np.delete(img,0,0)
-    np.delete(img,0,1)
+    result_img = np.delete(result_img,0,0)
+    result_img = np.delete(result_img,0,1)  
+    result_img = np.delete(result_img,height-2,0)
+    result_img = np.delete(result_img,width-2,1) #removes padding of the final image
 
-    result_img = (result_img - np.min(result_img))
-    result_img = result_img*255
-    result_img = result_img/np.max(result_img) # scale the filtered image using normalization (0 - 255)
+    imin = np.min(result_img)
+    imax = np.max(result_img)
+    
+    for i in range(height-2):
+    	for j in range(width-2):
+            result_img[i,j] = ((result_img[i,j] - imin)*255) / imax # scale the filtered image using normalization (0 - 255)
    # print(np.min(result_img))
    # print(np.max(result_img))
 
-    result_img = float(c)*result_img.astype(np.float) + img.astype(np.float) # adds the filtered image, multiplied by c, back to the original image
+    for i in range(height-2):
+        for j in range(width-2):
+            result_img[i,j] = (c*result_img[i,j] ) + img[i,j] # adds the filtered image, multiplied by c, back to the original image
 
-    result_img = (result_img - np.min(result_img))
-    result_img = result_img*255
-    result_img = result_img/np.max(result_img) # scale the final image using normalization (0-255)
+    imin = np.min(result_img)
+    imax = np.max(result_img)
+
+    for i in range(height-2):
+    	for j in range(width-2):
+            result_img[i,j] = ((result_img[i,j] - imin)*255)/ imax # scale the final image using normalization (0-255)
     
 
     return result_img.astype(np.uint8)
@@ -135,7 +146,7 @@ def Vignette_Filter_3(img,sigmaRow,sigmaCol): # Method 3 - Vignette Filter
     for x in range(-a,a+1): # values of x and y of each position of an n-sized matrix are needed to calculate euclidean distance from each position to the center
        gs_x = float(1) / (2*np.pi*np.square(sigmaRow)) #applies the Gaussian kernel equation G(euc,sigmaS) for each pixel of the gaussian spatial component
        #print(gs_x)
-       gs_x = gs_x * (np.exp( float(-np.square(x)) / float(( 2*np.square(sigmaRow)) ) ) )
+       gs_x = gs_x * (np.exp( float(-np.square(x-a)) / float(( 2*np.square(sigmaRow)) ) ) )
        #print(gs_x)
        gs_row[0][i] = float(gs_x)
        #print(gs_row[i])
@@ -146,21 +157,19 @@ def Vignette_Filter_3(img,sigmaRow,sigmaCol): # Method 3 - Vignette Filter
 
     for x in range(-b,b+1):
         gs_x = float(1) / (2*np.pi*np.square(sigmaCol)) #applies the Gaussian kernel equation G(euc,sigmaS) for each pixel of the gaussian spatial component
-        gs_x = gs_x * (np.exp( float(-np.square(x)) / float(( 2*np.square(sigmaCol)) ) ) )
+        gs_x = gs_x * (np.exp( float(-np.square(x-b)) / float(( 2*np.square(sigmaCol)) ) ) )
         gs_col[0][i] = float(gs_x) 
         i = i + 1
 
-    #print(gs_col)
-
     result_img = np.matmul(gs_row.T,gs_col)
-
     result_img = np.multiply(result_img,img)
-    
-    result_img = (result_img - np.min(result_img))
-    result_img = result_img*255
-    result_img = result_img/np.max(result_img) # scale the final image using normalization (0-255)
 
-    return result_img    
+    img_min = np.min(result_img)
+    img_max = np.max(result_img)
+
+    result_img = (result_img - img_min)*255/img_max # scale the final image using normalization (0-255)
+
+    return result_img.astype(np.uint8)    
 
 imagename = str(input()).rstrip() # reads the name of the reference image file
 
@@ -184,6 +193,11 @@ if M == 1: # Bilateral Filter
 
     result_img = Bilateral_Filter_1(image,n,sigmaS,sigmaR)
 
+ #   image = np.delete(image,0:a,0) #removes image padding from original image
+ #   image = np.delete(image,0:a,1)
+ #   image = np.delete(image,height-a:height,0)
+ #   image = np.delete(image,width-a:width,1)
+
 if M == 2: # Unsharp Mask using the Laplacian Filter
 
     c = float(input())
@@ -194,6 +208,13 @@ if M == 2: # Unsharp Mask using the Laplacian Filter
     
     result_img = Laplacian_Filter_2(image,c,kernel)
 
+    height, width = image.shape
+
+    image = np.delete(image,0,0) #removes image padding from original image
+    image = np.delete(image,0,1)
+    image = np.delete(image,height-2,0)
+    image = np.delete(image,width-2,1)
+
 
 if M == 3: # Vignette Filter
 
@@ -202,6 +223,8 @@ if M == 3: # Vignette Filter
     sigmaCol = float(input())
 
     result_img = Vignette_Filter_3(image,sigmaRow,sigmaCol)
+
+
 
 # 3 - Compare the new image with the reference image using the following formula: RSE = sqrt(∑i∑j (f(i,j) - r(i,j))²), in which f is the modified image and r is the reference image
 
@@ -212,6 +235,8 @@ rse = (np.sqrt( np.sum ( np.square (np.subtract(result_img.astype(np.int32),imag
 print("%.4f" % rse)
 
 # 5 - Save the filtered image, if S = 1
+
+result_img = result_img.astype(np.uint8)
 
 if S == 1:
     imageio.imwrite("FilteredImage.jpg",result_img)
