@@ -53,7 +53,12 @@ def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
                     I_f = I_f + float(w_i*subimg[x,y]) # applies the filter to each point of the neighborhood, by multiplying the filter local value and the neighborhood pixel and summing them all
      
             result_img[i,j] = int(I_f/W_p) # fills up position [x,y] of the final image with the correct number    
-    
+    b = int(a/2)
+    result_img = np.delete(result_img,np.s_[0:a],0) #removes image padding from original image
+    result_img = np.delete(result_img,np.s_[0:a],1)
+    result_img = np.delete(result_img,np.s_[height-b-a-1:height-a],0)
+    result_img = np.delete(result_img,np.s_[width-b-a-1:width-a],1)
+
     return result_img
 
 def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplacian Filter
@@ -116,7 +121,8 @@ def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplac
     for i in range(height-2):
     	for j in range(width-2):
             result_img[i,j] = ((result_img[i,j] - imin)*255)/ imax # scale the final image using normalization (0-255)
-    
+
+        
 
     return result_img.astype(np.uint8)
 
@@ -175,6 +181,8 @@ imagename = str(input()).rstrip() # reads the name of the reference image file
 
 image = imageio.imread(imagename) # reads the image
 
+height, width = image.shape
+
 M = int(input()) # paramater to indicate the method 1,2, our 3
 
 S = int(input()) # parameter to know if the image should be saved, 1 for yes
@@ -193,10 +201,12 @@ if M == 1: # Bilateral Filter
 
     result_img = Bilateral_Filter_1(image,n,sigmaS,sigmaR)
 
- #   image = np.delete(image,0:a,0) #removes image padding from original image
- #   image = np.delete(image,0:a,1)
- #   image = np.delete(image,height-a:height,0)
- #   image = np.delete(image,width-a:width,1)
+    b = int(a/2)
+
+    image = np.delete(image,np.s_[0:a],0) #removes image padding from original image
+    image = np.delete(image,np.s_[0:a],1)
+    image = np.delete(image,np.s_[height-b:height+1],0)
+    image = np.delete(image,np.s_[width-b:width+1],1)
 
 if M == 2: # Unsharp Mask using the Laplacian Filter
 
@@ -207,8 +217,6 @@ if M == 2: # Unsharp Mask using the Laplacian Filter
     image = np.pad(image,(1,1),mode='constant',constant_values=(0)) #adds image padding
     
     result_img = Laplacian_Filter_2(image,c,kernel)
-
-    height, width = image.shape
 
     image = np.delete(image,0,0) #removes image padding from original image
     image = np.delete(image,0,1)
