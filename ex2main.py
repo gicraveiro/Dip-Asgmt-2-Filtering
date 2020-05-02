@@ -61,13 +61,16 @@ def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplac
     k = np.zeros((3,3),dtype=np.float)
 
     if kernel == 1:
-        k = [[0,-1,0],[-1,4,-1],[0,-1,0]] # creates kernel 1
+        k = np.matrix([[0,-1,0],[-1,4,-1],[0,-1,0]]) # creates kernel 1
     elif kernel == 2:
-        k = [[-1,-1,-1],[-1,8,-1],[-1,-1,-1]] #creates kernel 2
+        k = np.matrix([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]) #creates kernel 2
+
+    #print(k)
 
     height, width = img.shape
     neighborhood = np.zeros((3,3),dtype=np.float) #creates submatrix to store the current neighborhood of the point being calculated
     result_img = np.zeros(img.shape,dtype=np.uint8) #creates a new empty image with size nxn to store the final image
+    neigh_pix = float(0)
 
     #Convolution with chosen kernel
     for i in range(1,height-1):
@@ -75,25 +78,94 @@ def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplac
 
             neighborhood = img[(i-1):(i+2),(j-1):(j+2)]
             img_pixel = float(0)
+            #print (neighborhood)
+            #print (img[i,j])
+
 
             for x in range(3):
                 for y in range(3):
-                    neigh_pix = float(k[x,y])*float(neighborhood[x,y])
+                    neigh_pix = float(k[x,y]) * float(neighborhood[x,y])
                     img_pixel = img_pixel + neigh_pix
                     
             result_img[i,j] = img_pixel
     
-    result_img = (result_img - np.min(result_img))*255/np.max(result_img) # scale the filtered image using normalization (0 - 255)
+    np.delete(result_img,0,0)# remove paddings
+    np.delete(result_img,0,1)
+    np.delete(img,0,0)
+    np.delete(img,0,1)
 
-    result_img = c*result_img + img # adds the filtered image, multiplied by c, back to the original image
+    result_img = (result_img - np.min(result_img))
+    result_img = result_img*255
+    result_img = result_img/np.max(result_img) # scale the filtered image using normalization (0 - 255)
+   # print(np.min(result_img))
+   # print(np.max(result_img))
 
-    result_img = (result_img - np.min(result_img))*255/np.max(result_img) # scale the fial image using normalization (0-255)
+    result_img = float(c)*result_img.astype(np.float) + img.astype(np.float) # adds the filtered image, multiplied by c, back to the original image
 
-    return result_img
+    result_img = (result_img - np.min(result_img))
+    result_img = result_img*255
+    result_img = result_img/np.max(result_img) # scale the final image using normalization (0-255)
+    
+
+    return result_img.astype(np.uint8)
 
 def Vignette_Filter_3(img,sigmaRow,sigmaCol): # Method 3 - Vignette Filter
-    #function goes here
-    aux = 1 #delete later
+   
+    height,width = img.shape
+    #print(img.shape)
+
+    if height%2 == 0:
+        a = int((height/2)-1)
+    else:
+        a = int((height-1)/2)
+    if width%2 == 0:
+        b = int((width/2)-1)
+    else:
+        b = int((width-1)/2)
+
+    #print(a,b)
+
+    gs_row = np.zeros((height,),dtype=np.float)
+    gs_col = np.zeros((width,),dtype=np.float)
+    result_img = np.zeros((height,width),dtype=np.uint8)
+    i = int(0)
+    print(gs_row)
+
+    for x in range(-a,a+1): # values of x and y of each position of an n-sized matrix are needed to calculate euclidean distance from each position to the center
+       gs_x = float(1) / (2*np.pi*np.square(sigmaRow)) #applies the Gaussian kernel equation G(euc,sigmaS) for each pixel of the gaussian spatial component
+       #print(gs_x)
+       gs_x = gs_x * (np.exp( float(-np.square(x)) / float(( 2*np.square(sigmaRow)) ) ) )
+       #print(gs_x)
+       gs_row[i] = float(gs_x)
+       #print(gs_row[i])
+       i = i + 1
+
+    print(gs_row)
+    i = 0
+
+    for x in range(-b,b+1):
+        gs_x = float(1) / (2*np.pi*np.square(sigmaCol)) #applies the Gaussian kernel equation G(euc,sigmaS) for each pixel of the gaussian spatial component
+        gs_x = gs_x * (np.exp( float(-np.square(x)) / float(( 2*np.square(sigmaCol)) ) ) )
+        gs_col[i] = float(gs_x) 
+        i = i + 1
+
+    print("FLAG NOW COLUMNS")
+    print(gs_col)
+
+    
+
+    print("TRANSPOSED")
+    print(gs_col)
+
+    result_img = np.matmul(gs_row, np.transpose(gs_col))
+
+    result_img = np.multiply(result_img,img)
+    
+    result_img = (result_img - np.min(result_img))
+    result_img = result_img*255
+    result_img = result_img/np.max(result_img) # scale the final image using normalization (0-255)
+
+    return result_img    
 
 imagename = str(input()).rstrip() # reads the name of the reference image file
 
