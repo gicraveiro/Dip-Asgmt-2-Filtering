@@ -6,7 +6,6 @@
 
 import numpy as np
 import imageio
-#import matplotlib.pyplot as plt
 
 def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
     
@@ -62,16 +61,11 @@ def Bilateral_Filter_1(img,n,sigmaS,sigmaR): # Method 1 - Bilateral Filter
     return result_img
 
 def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplacian Filter
-    
-    #k = np.zeros((3,3),dtype=np.float)
-    img = img#.astype(np.float) # int32 e float dá no mesmo
 
     if kernel == 1:
         k = np.matrix([[0,-1,0],[-1,4,-1],[0,-1,0]]) # creates kernel 1
     elif kernel == 2:
         k = np.matrix([[-1,-1,-1],[-1,8,-1],[-1,-1,-1]]) #creates kernel 2
-    
-    #k = k.astype(np.int32) # com ou sem nao fez diferença
 
     height, width = img.shape
     neighborhood = np.zeros((3,3),dtype=np.float) # creates submatrix to store the current neighborhood of the point being calculated
@@ -83,15 +77,15 @@ def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplac
         for j in range(1,width-1):
 
             neighborhood = img[(i-1):(i+2),(j-1):(j+2)] # defines the current neighborhood centered in the point i[i,j]
-            neighborhood = neighborhood#.astype(np.int32) #já estava em float e nao fez diferença no resultado
+            neighborhood = neighborhood
             img_pixel = 0
             
             for x in range(3): # walks through the current neighborhood calculating the convolution
                 for y in range(3):
                     neigh_pix = k[x,y] * neighborhood[x,y]
-                    img_pixel = img_pixel  + neigh_pix #float nao faz diferença #+ (k[x,y] * neighborhood[x,y])
+                    img_pixel = img_pixel  + neigh_pix 
                     
-            result_img[i,j] = img_pixel #float nao faz diferença
+            result_img[i,j] = img_pixel 
     
     result_img = np.delete(result_img,0,0)
     result_img = np.delete(result_img,0,1)  
@@ -101,29 +95,13 @@ def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplac
     img = np.delete(img,0,0)
     img = np.delete(img,0,1)  
     img = np.delete(img,height-2,0)
-    img = np.delete(img,width-2,1) #removes padding of the final image
+    img = np.delete(img,width-2,1) #removes padding of the original image temporarily to adequately make operations
 
     img_min = np.min(result_img) # gets minimum and maximum value of the altered image
     img_max = np.max(result_img)
 
     result_img = (result_img - img_min)*255/ (img_max - img_min)# scales the final image using normalization (0-255)
-    result_img = (c*result_img) + img
-#    imin = float(np.min(result_img)) # gets current minimum and maximum value of the altered image
-#    imax = float(np.max(result_img)) # nao faz diferença int ou float aqui
-    
-#    for i in range(height-2):
-#    	for j in range(width-2):
-#            result_img[i,j] = ((result_img[i,j] - int(imin))*255) / (imax - imin) # scales the filtered image using normalization (0 - 255)
-#            result_img[i,j] = (c*result_img[i,j] ) + img[i,j] # adds the filtered image, multiplied by c, back to the original image
-           
-#    imin = np.min(result_img) # gets current minimum and maximum value of the altered image
-#    imax = np.max(result_img)
-    
-#    for i in range(height-2):
-#    	for j in range(width-2):
-#            result_img[i,j] = ((result_img[i,j] - imin)*255)/ (imax - imin) # scales the final image using normalization (0-255)    
-    
-    #result_img = result_img.astype(np.uint8)
+    result_img = (c*result_img) + img # adds the filtered image, multiplied by c, back to the original image
 
     img_min = np.min(result_img) # gets minimum and maximum value of the altered image
     img_max = np.max(result_img)
@@ -135,7 +113,6 @@ def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplac
 def Vignette_Filter_3(img,sigmaRow,sigmaCol): # Method 3 - Vignette Filter
    
     height,width = img.shape
-    #print(img.shape)
 
     if height%2 == 0:
         a = int((height/2)-1) #defines centered position of the image
@@ -146,26 +123,19 @@ def Vignette_Filter_3(img,sigmaRow,sigmaCol): # Method 3 - Vignette Filter
     else:
         b = int((width-1)/2)
 
-    #print(a,b)
-
     gs_row = np.zeros((1,height),dtype=np.float) #creates 1D gaussian kernels
     gs_col = np.zeros((1,width),dtype=np.float)
     result_img = np.zeros((height,width),dtype=np.uint8)
 
     i = int(0)
-    #print(gs_row)
 
     #Gaussian kernel with row size
     for x in range(-a,a+1): # values of x and y of each position of an n-sized matrix are needed to calculate euclidean distance from each position to the center
        gs_x = float(1) / (2*np.pi*np.square(sigmaRow)) #applies the Gaussian kernel equation G(euc,sigmaS) for each pixel of the gaussian spatial component
-       #print(gs_x)
        gs_x = gs_x * (np.exp( float(-np.square(x)) / float(( 2*np.square(sigmaRow)) ) ) )
-       #print(gs_x)
        gs_row[0][i] = float(gs_x)
-       #print(gs_row[i])
        i = i + 1
 
-    #print(gs_row)
     i = 0
 
     #Gaussian kernel with column size
