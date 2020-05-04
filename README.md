@@ -11,8 +11,8 @@ Giovana Meloni Craveiro
 
 Folders and files:
 
-Code contains the Python code used for run.codes submission
+ex2main.py is the Python code used for run.codes submission
 
-Images contains images used in the demos
+Images contains the image files used in the demos
 
 Notebook with Demo is a notebook exemplifying functions developed and submitted
