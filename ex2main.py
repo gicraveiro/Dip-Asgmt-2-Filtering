@@ -88,33 +88,47 @@ def Laplacian_Filter_2(img,c,kernel): # Method 2 - Unsharp Mask using the Laplac
             
             for x in range(3): # walks through the current neighborhood calculating the convolution
                 for y in range(3):
-                    #neigh_pix = k[x,y] * neighborhood[x,y]
-                    img_pixel = img_pixel + (k[x,y] * neighborhood[x,y]) #+ neigh_pix #float nao faz diferença
+                    neigh_pix = k[x,y] * neighborhood[x,y]
+                    img_pixel = img_pixel  + neigh_pix #float nao faz diferença #+ (k[x,y] * neighborhood[x,y])
                     
-            result_img[i,j] = float(img_pixel) #float nao faz diferença
+            result_img[i,j] = img_pixel #float nao faz diferença
     
     result_img = np.delete(result_img,0,0)
     result_img = np.delete(result_img,0,1)  
     result_img = np.delete(result_img,height-2,0)
     result_img = np.delete(result_img,width-2,1) #removes padding of the final image
 
+    img = np.delete(img,0,0)
+    img = np.delete(img,0,1)  
+    img = np.delete(img,height-2,0)
+    img = np.delete(img,width-2,1) #removes padding of the final image
 
-    imin = float(np.min(result_img)) # gets current minimum and maximum value of the altered image
-    imax = float(np.max(result_img)) # nao faz diferença int ou float aqui
+    img_min = np.min(result_img) # gets minimum and maximum value of the altered image
+    img_max = np.max(result_img)
+
+    result_img = (result_img - img_min)*255/ (img_max - img_min)# scales the final image using normalization (0-255)
+    result_img = (c*result_img) + img
+#    imin = float(np.min(result_img)) # gets current minimum and maximum value of the altered image
+#    imax = float(np.max(result_img)) # nao faz diferença int ou float aqui
     
-    for i in range(height-2):
-    	for j in range(width-2):
-            result_img[i,j] = ((result_img[i,j] - int(imin))*255) / (imax - imin) # scales the filtered image using normalization (0 - 255)
-            result_img[i,j] = (c*result_img[i,j] ) + img[i,j] # adds the filtered image, multiplied by c, back to the original image
+#    for i in range(height-2):
+#    	for j in range(width-2):
+#            result_img[i,j] = ((result_img[i,j] - int(imin))*255) / (imax - imin) # scales the filtered image using normalization (0 - 255)
+#            result_img[i,j] = (c*result_img[i,j] ) + img[i,j] # adds the filtered image, multiplied by c, back to the original image
            
-    imin = np.min(result_img) # gets current minimum and maximum value of the altered image
-    imax = np.max(result_img)
+#    imin = np.min(result_img) # gets current minimum and maximum value of the altered image
+#    imax = np.max(result_img)
     
-    for i in range(height-2):
-    	for j in range(width-2):
-            result_img[i,j] = ((result_img[i,j] - imin)*255)/ (imax - imin) # scales the final image using normalization (0-255)    
+#    for i in range(height-2):
+#    	for j in range(width-2):
+#            result_img[i,j] = ((result_img[i,j] - imin)*255)/ (imax - imin) # scales the final image using normalization (0-255)    
     
     #result_img = result_img.astype(np.uint8)
+
+    img_min = np.min(result_img) # gets minimum and maximum value of the altered image
+    img_max = np.max(result_img)
+
+    result_img = (result_img - img_min)*255/ (img_max - img_min)# scales the final image using normalization (0-255)
 
     return result_img
 
