@@ -3,6 +3,8 @@
 # SCC0251_Turma01_1Sem_2020 - Image Processing 
 # Assignment2 - Image Enhancement and Filtering
 #
+# link for the repository on github: https://github.com/gicraveiro/Dip-Asgmt-2-Filtering
+#
 
 import numpy as np
 import imageio
