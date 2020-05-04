@@ -145,7 +145,7 @@ def Vignette_Filter_3(img,sigmaRow,sigmaCol): # Method 3 - Vignette Filter
     for x in range(-a,a+1): # values of x and y of each position of an n-sized matrix are needed to calculate euclidean distance from each position to the center
        gs_x = float(1) / (2*np.pi*np.square(sigmaRow)) #applies the Gaussian kernel equation G(euc,sigmaS) for each pixel of the gaussian spatial component
        #print(gs_x)
-       gs_x = gs_x * (np.exp( float(-np.square(x-a)) / float(( 2*np.square(sigmaRow)) ) ) )
+       gs_x = gs_x * (np.exp( float(-np.square(x)) / float(( 2*np.square(sigmaRow)) ) ) )
        #print(gs_x)
        gs_row[0][i] = float(gs_x)
        #print(gs_row[i])
@@ -157,7 +157,7 @@ def Vignette_Filter_3(img,sigmaRow,sigmaCol): # Method 3 - Vignette Filter
     #Gaussian kernel with column size
     for x in range(-b,b+1):
         gs_x = float(1) / (2*np.pi*np.square(sigmaCol)) #applies the Gaussian kernel equation G(euc,sigmaS) for each pixel of the gaussian spatial component
-        gs_x = gs_x * (np.exp( float(-np.square(x-b)) / float(( 2*np.square(sigmaCol)) ) ) )
+        gs_x = gs_x * (np.exp( float(-np.square(x)) / float(( 2*np.square(sigmaCol)) ) ) )
         gs_col[0][i] = float(gs_x) 
         i = i + 1
 
