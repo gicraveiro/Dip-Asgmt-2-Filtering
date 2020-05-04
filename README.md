@@ -13,6 +13,6 @@ Folders and files:
 
 ex2main.py is the Python code used for run.codes submission
 
-Images contains the image files used in the demos
+imagesasgmt2 contains the image files used in the demos
 
 Notebook with Demo is a notebook exemplifying functions developed and submitted
