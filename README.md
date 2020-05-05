@@ -15,4 +15,4 @@ ex2main.py is the Python code used for run.codes submission
 
 imagesasgmt2 contains the image files used in the demos
 
-Notebook with Demo is a notebook exemplifying functions developed and submitted
+Demos.ipynb is a notebook with two demonstrations of each filter from the code
